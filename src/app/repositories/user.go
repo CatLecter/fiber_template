@@ -1,15 +1,15 @@
 package repositories
 
 import (
+	"app/dto"
 	"app/engines"
-	"app/schemes"
 	"context"
 	"errors"
 	"github.com/google/uuid"
 	"time"
 )
 
-func GetUserByUUID(userUUID *uuid.UUID) (*schemes.UserResp, error) {
+func GetUserByID(userID *uuid.UUID) (*dto.ResponseUserDTO, error) {
 	ctx := context.Background()
 	dbEngine := engines.DBEngine{}
 	conn, err := dbEngine.GetConn(&ctx)
@@ -17,21 +17,21 @@ func GetUserByUUID(userUUID *uuid.UUID) (*schemes.UserResp, error) {
 		return nil, err
 	}
 	defer conn.Release()
-	user := schemes.UserResp{}
-	err = conn.QueryRow(ctx, "SELECT * FROM users WHERE uuid = $1", userUUID).Scan(
-		&user.UUID,
-		&user.FullName,
-		&user.Phone,
-		&user.CreatedAt,
-		&user.UpdatedAt,
+	responseUser := dto.ResponseUserDTO{}
+	err = conn.QueryRow(ctx, "SELECT * FROM users WHERE user_id = $1", userID).Scan(
+		&responseUser.UserID,
+		&responseUser.FullName,
+		&responseUser.Phone,
+		&responseUser.CreatedAt,
+		&responseUser.UpdatedAt,
 	)
 	if err != nil {
 		return nil, err
 	}
-	return &user, nil
+	return &responseUser, nil
 }
 
-func CreateUser(user *schemes.UserReq) (*schemes.UserResp, error) {
+func CreateUser(requestUser *dto.RequestUserDTO) (*dto.ResponseUserDTO, error) {
 	ctx := context.Background()
 	dbEngine := engines.DBEngine{}
 	conn, err := dbEngine.GetConn(&ctx)
@@ -39,23 +39,25 @@ func CreateUser(user *schemes.UserReq) (*schemes.UserResp, error) {
 		return nil, err
 	}
 	defer conn.Release()
-	userResp := schemes.UserResp{}
+	responseUser := dto.ResponseUserDTO{}
 	err = conn.QueryRow(
-		ctx, "INSERT INTO users(full_name, phone) VALUES($1, $2) RETURNING *", user.FullName, user.Phone,
+		ctx, "INSERT INTO users(full_name, phone) VALUES($1, $2) RETURNING *",
+		requestUser.FullName,
+		requestUser.Phone,
 	).Scan(
-		&userResp.UUID,
-		&userResp.FullName,
-		&userResp.Phone,
-		&userResp.CreatedAt,
-		&userResp.UpdatedAt,
+		&responseUser.UserID,
+		&responseUser.FullName,
+		&responseUser.Phone,
+		&responseUser.CreatedAt,
+		&responseUser.UpdatedAt,
 	)
 	if err != nil {
 		return nil, err
 	}
-	return &userResp, nil
+	return &responseUser, nil
 }
 
-func UpdateUserByUUID(userUUID *uuid.UUID, user *schemes.UserReq) (*schemes.UserResp, error) {
+func UpdateUserByID(userID *uuid.UUID, requestUser *dto.RequestUserDTO) (*dto.ResponseUserDTO, error) {
 	ctx := context.Background()
 	dbEngine := engines.DBEngine{}
 	conn, err := dbEngine.GetConn(&ctx)
@@ -63,27 +65,27 @@ func UpdateUserByUUID(userUUID *uuid.UUID, user *schemes.UserReq) (*schemes.User
 		return nil, err
 	}
 	defer conn.Release()
-	userResp := schemes.UserResp{}
+	responseUser := dto.ResponseUserDTO{}
 	err = conn.QueryRow(
-		ctx, "UPDATE users SET full_name = $1, phone = $2, updated_at = $3 WHERE uuid = $4 RETURNING *",
-		user.FullName,
-		user.Phone,
+		ctx, "UPDATE users SET full_name = $1, phone = $2, updated_at = $3 WHERE user_id = $4 RETURNING *",
+		requestUser.FullName,
+		requestUser.Phone,
 		time.Now(),
-		userUUID,
+		userID,
 	).Scan(
-		&userResp.UUID,
-		&userResp.FullName,
-		&userResp.Phone,
-		&userResp.CreatedAt,
-		&userResp.UpdatedAt,
+		&responseUser.UserID,
+		&responseUser.FullName,
+		&responseUser.Phone,
+		&responseUser.CreatedAt,
+		&responseUser.UpdatedAt,
 	)
 	if err != nil {
 		return nil, err
 	}
-	return &userResp, nil
+	return &responseUser, nil
 }
 
-func DeleteUserByUUID(userUUID *uuid.UUID) error {
+func DeleteUserByID(userID *uuid.UUID) error {
 	ctx := context.Background()
 	dbEngine := engines.DBEngine{}
 	conn, err := dbEngine.GetConn(&ctx)
@@ -91,7 +93,7 @@ func DeleteUserByUUID(userUUID *uuid.UUID) error {
 		return err
 	}
 	defer conn.Release()
-	result, err := conn.Exec(ctx, "DELETE FROM users WHERE uuid = $1", userUUID)
+	result, err := conn.Exec(ctx, "DELETE FROM users WHERE user_id = $1", userID)
 	if err != nil {
 		return err
 	}

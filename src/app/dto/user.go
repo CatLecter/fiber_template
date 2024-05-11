@@ -1,14 +1,14 @@
-package schemes
+package dto
 
 import "time"
 
-type UserReq struct {
+type RequestUserDTO struct {
 	FullName string `json:"full_name"`
 	Phone    string `json:"phone"`
 }
 
-type UserResp struct {
-	UUID      string    `json:"uuid"`
+type ResponseUserDTO struct {
+	UserID    string    `json:"user_id"`
 	FullName  string    `json:"full_name"`
 	Phone     string    `json:"phone"`
 	CreatedAt time.Time `json:"created_at"`

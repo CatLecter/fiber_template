@@ -24,14 +24,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserRequest'
+              $ref: '#/components/schemas/RequestUser'
       responses:
         default:
           description: successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/ResponseUser'
     get:
       tags:
         - User
@@ -39,7 +39,7 @@ paths:
       description: ''
       operationId: getUserByName
       parameters:
-        - name: uuid
+        - name: user_id
           in: query
           description: 'The name that needs to be fetched. Use user1 for testing. '
           required: true
@@ -52,7 +52,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/ResponseUser'
         '400':
           description: Invalid username supplied
         '404':
@@ -64,7 +64,7 @@ paths:
       description: This can only be done by the logged in user.
       operationId: updateUser
       parameters:
-        - name: uuid
+        - name: user_id
           in: query
           description: name that need to be deleted
           required: true
@@ -76,14 +76,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserRequest'
+              $ref: '#/components/schemas/RequestUser'
       responses:
         default:
           description: successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/ResponseUser'
     delete:
       tags:
         - User
@@ -91,7 +91,7 @@ paths:
       description: This can only be done by the logged in user.
       operationId: deleteUser
       parameters:
-        - name: uuid
+        - name: user_id
           in: query
           description: The name that needs to be deleted
           required: true
@@ -105,10 +105,21 @@ paths:
           description: User not found
 components:
   schemas:
-    UserResponse:
+    RequestUser:
       type: object
       properties:
-        uuid:
+        full_name:
+          type: string
+          example: "John Doe"
+        phone:
+          type: string
+          example: "89855556575"
+      xml:
+        name: user
+    ResponseUser:
+      type: object
+      properties:
+        user_id:
           type: string
           format: uuid
           example: "57ebdf11-5ccf-4cae-b2d1-da513894202a"
@@ -126,17 +137,6 @@ components:
           format: date-time
       xml:
         name: user
-    UserRequest:
-      type: object
-      properties:
-        full_name:
-          type: string
-          example: "John Doe"
-        phone:
-          type: string
-          example: "89855556575"
-      xml:
-        name: user
   requestBodies:
     UserArray:
       description: List of user object
@@ -145,4 +145,4 @@ components:
           schema:
             type: array
             items:
-              $ref: '#/components/schemas/UserRequest'
+              $ref: '#/components/schemas/RequestUser'

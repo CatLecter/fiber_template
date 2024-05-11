@@ -1,8 +1,8 @@
 package service
 
 import (
+	"app/dto"
 	"app/repositories"
-	"app/schemes"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -10,65 +10,65 @@ import (
 )
 
 func GetUser(ctx *fiber.Ctx) error {
-	userUUID, err := uuid.Parse(ctx.Query("uuid"))
+	userID, err := uuid.Parse(ctx.Query("user_id"))
 	if err != nil {
 		log.Printf("ERROR: %v", err)
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"result": "UUID parsing error"})
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"result": "user ID parsing error"})
 	}
-	user, err := repositories.GetUserByUUID(&userUUID)
+	user, err := repositories.GetUserByID(&userID)
 	if err != nil {
 		return ctx.Status(fiber.StatusNotFound).JSON(
-			fiber.Map{"result": fmt.Sprintf("user with UUID=%v not found", userUUID)},
+			fiber.Map{"result": fmt.Sprintf("user with ID=%v not found", userID)},
 		)
 	}
 	return ctx.Status(fiber.StatusOK).JSON(user)
 }
 
 func CreateUser(ctx *fiber.Ctx) error {
-	user := new(schemes.UserReq)
-	if err := ctx.BodyParser(&user); err != nil {
+	requestUser := new(dto.RequestUserDTO)
+	if err := ctx.BodyParser(&requestUser); err != nil {
 		log.Printf("ERROR: %v", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"result": "cannot parse JSON"})
 	}
-	userResp, err := repositories.CreateUser(user)
+	responseUser, err := repositories.CreateUser(requestUser)
 	if err != nil {
 		log.Printf("ERROR: %v", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"result": "error when creating a user"})
 	}
-	return ctx.Status(fiber.StatusOK).JSON(userResp)
+	return ctx.Status(fiber.StatusOK).JSON(responseUser)
 }
 
 func UpdateUser(ctx *fiber.Ctx) error {
-	userUUID, err := uuid.Parse(ctx.Query("uuid"))
+	userID, err := uuid.Parse(ctx.Query("user_id"))
 	if err != nil {
 		log.Printf("ERROR: %v", err)
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"result": "UUID parsing error"})
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"result": "user ID parsing error"})
 	}
-	_, err = repositories.GetUserByUUID(&userUUID)
+	_, err = repositories.GetUserByID(&userID)
 	if err != nil {
 		return ctx.Status(fiber.StatusNotFound).JSON(
-			fiber.Map{"result": fmt.Sprintf("user with UUID=%v not found", userUUID)},
+			fiber.Map{"result": fmt.Sprintf("user with ID=%v not found", userID)},
 		)
 	}
-	user := new(schemes.UserReq)
-	if err := ctx.BodyParser(&user); err != nil {
+	requestUser := new(dto.RequestUserDTO)
+	if err := ctx.BodyParser(&requestUser); err != nil {
 		log.Printf("ERROR: %v", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"result": "cannot parse JSON"})
 	}
-	userResp, err := repositories.UpdateUserByUUID(&userUUID, user)
+	responseUser, err := repositories.UpdateUserByID(&userID, requestUser)
 	if err != nil {
 		log.Printf("ERROR: %v", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"result": "error when update a user"})
 	}
-	return ctx.Status(fiber.StatusOK).JSON(userResp)
+	return ctx.Status(fiber.StatusOK).JSON(responseUser)
 }
 
 func DeleteUser(ctx *fiber.Ctx) error {
-	var userUUID uuid.UUID = uuid.MustParse(ctx.Query("uuid"))
-	err := repositories.DeleteUserByUUID(&userUUID)
+	var userID uuid.UUID = uuid.MustParse(ctx.Query("user_id"))
+	err := repositories.DeleteUserByID(&userID)
 	if err != nil {
 		return ctx.Status(fiber.StatusNotFound).JSON(
-			fiber.Map{"result": fmt.Sprintf("user with UUID=%v not found", userUUID)},
+			fiber.Map{"result": fmt.Sprintf("user with ID=%v not found", userID)},
 		)
 	}
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{"result": "OK"})
