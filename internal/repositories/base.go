@@ -11,6 +11,7 @@ type UserRepositoryInterface interface {
 	GetUserByUUID(userUUID *uuid.UUID) (*schemes.UserResponse, error)
 	UpdateUserByUUID(userUUID *uuid.UUID, user *schemes.UserRequest) (*schemes.UserResponse, error)
 	DeleteUserByUUID(userUUID *uuid.UUID) error
+	CheckUserByUUID(userUUID *uuid.UUID) (*bool, error)
 	CheckUserByPhone(phone *string) (*bool, error)
 }
 

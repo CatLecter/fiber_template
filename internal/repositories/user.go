@@ -52,6 +52,24 @@ func (repo *UserRepository) GetUserByUUID(userUUID *uuid.UUID) (*schemes.UserRes
 	return &userResp, nil
 }
 
+func (repo *UserRepository) CheckUserByUUID(userUUID *uuid.UUID) (*bool, error) {
+	ctx := context.Background()
+	conn, err := repo.db.Acquire(ctx)
+	defer conn.Release()
+	if err != nil {
+		log.Warnf("Error acquiring connection: %v", err.Error())
+		return nil, err
+	}
+	row := conn.QueryRow(ctx, "SELECT CASE WHEN EXISTS (SELECT uuid FROM users WHERE uuid = $1) THEN true ELSE false END", &userUUID)
+	var result bool
+	err = row.Scan(&result)
+	if err != nil {
+		log.Warnf("Failed to get user: %s", err.Error())
+		return nil, err
+	}
+	return &result, nil
+}
+
 func (repo *UserRepository) CheckUserByPhone(phone *string) (*bool, error) {
 	ctx := context.Background()
 	conn, err := repo.db.Acquire(ctx)

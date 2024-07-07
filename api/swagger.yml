@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Swagger API Docs - OpenAPI 3.0
-  description: Описание
+  description: ''
   license:
     name: MIT
     url: https://mit-license.org/
@@ -10,99 +10,151 @@ servers:
   - url: http://localhost:8000/api/v1
 tags:
   - name: User
-    description: User operations
+    description: A group of methods for working with user data
 paths:
   /user:
     get:
       tags:
         - User
       summary: Get user by UUID
-      description: ''
+      description: A method for obtaining information about a user by his Identifier
       operationId: GetUserByUUID
       parameters:
         - name: uuid
           in: query
-          description: 'The name that needs to be fetched. Use user1 for testing. '
+          description: User identifier in UUID format
           required: true
           schema:
             type: string
             format: uuid
       responses:
         '200':
-          description: successful operation
+          description: Success
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ResponseUser'
         '400':
-          description: Invalid username supplied
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPResponse'
         '404':
-          description: User not found
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPResponse'
     post:
       tags:
         - User
       summary: Create user
-      description: This can only be done by the logged in user.
-      operationId: createUser
+      description: The method of creating a new user
+      operationId: CreateUser
       requestBody:
-        description: Created user object
+        description: New user's data
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/RequestUser'
       responses:
-        default:
-          description: successful operation
+        '200':
+          description: Success
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ResponseUser'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPResponse'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPResponse'
     put:
       tags:
         - User
       summary: Update user by UUID
-      description: This can only be done by the logged in user.
-      operationId: updateUserByUUID
+      description: The method of updating user data by its identifier
+      operationId: UpdateUserByUUID
       parameters:
         - name: uuid
           in: query
-          description: name that need to be deleted
+          description: User identifier in UUID format
           required: true
           schema:
             type: string
             format: uuid
       requestBody:
-        description: Update an existent user in the store
+        description: User data to update
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/RequestUser'
       responses:
-        default:
-          description: successful operation
+        '200':
+          description: Success
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ResponseUser'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPResponse'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPResponse'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPResponse'
     delete:
       tags:
         - User
       summary: Delete user by UUID
-      description: This can only be done by the logged in user.
+      description: The method of deleting a user by his Identifier
       operationId: DeleteUserByUUID
       parameters:
         - name: uuid
           in: query
-          description: The name that needs to be deleted
+          description: User identifier in UUID format
           required: true
           schema:
             type: string
             format: uuid
       responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPResponse'
         '400':
-          description: Invalid username supplied
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPResponse'
         '404':
-          description: User not found
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPResponse'
 components:
   schemas:
     RequestUser:
@@ -110,22 +162,20 @@ components:
       properties:
         full_name:
           type: string
-          example: "John Doe"
+          example: 'John Doe'
         phone:
           type: string
-          example: "89855556575"
-      xml:
-        name: user
+          example: '89855556575'
     ResponseUser:
       type: object
       properties:
         uuid:
           type: string
           format: uuid
-          example: "57ebdf11-5ccf-4cae-b2d1-da513894202a"
+          example: '57ebdf11-5ccf-4cae-b2d1-da513894202a'
         full_name:
           type: string
-          example: "John Doe"
+          example: 'John Doe'
         phone:
           type: string
           example: '89855556575'
@@ -135,14 +185,12 @@ components:
         updated_at:
           type: string
           format: date-time
-      xml:
-        name: user
-  requestBodies:
-    UserArray:
-      description: List of user object
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/RequestUser'
+    HTTPResponse:
+      type: object
+      properties:
+        result:
+          type: string
+          example: error
+        msg:
+          type: string
+          example: user not found
