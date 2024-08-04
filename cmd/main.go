@@ -24,8 +24,8 @@ func main() {
 		log.Fatalf("Failed to connect to database: %v", err.Error())
 	}
 
-	repos := repositories.NewRepository(db)
-	service := services.NewService(repos)
+	repos := repositories.NewRepository()
+	service := services.NewService(cfg, db, repos)
 	handler := handlers.NewHandler(service)
 
 	app := handler.Routes()

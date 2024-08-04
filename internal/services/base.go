@@ -1,8 +1,10 @@
 package services
 
 import (
+	"github.com/CatLecter/gin_template/configs"
 	"github.com/CatLecter/gin_template/internal/repositories"
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type UserServiceInterface interface {
@@ -14,6 +16,6 @@ type UserServiceInterface interface {
 
 type Service struct{ UserServiceInterface }
 
-func NewService(repos *repositories.Repository) *Service {
-	return &Service{UserServiceInterface: NewUserService(repos.UserRepositoryInterface)}
+func NewService(cfg *configs.Config, db *pgxpool.Pool, repos *repositories.Repository) *Service {
+	return &Service{UserServiceInterface: NewUserService(cfg, db, repos.UserRepositoryInterface)}
 }

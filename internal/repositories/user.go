@@ -10,120 +10,68 @@ import (
 	"time"
 )
 
-type UserRepository struct{ db *pgxpool.Pool }
+type UserRepository struct{}
 
-func NewUserRepository(db *pgxpool.Pool) UserRepositoryInterface { return &UserRepository{db: db} }
+func NewUserRepository() UserRepositoryInterface { return &UserRepository{} }
 
-func (repo *UserRepository) CreateUser(user *schemes.UserRequest) (*schemes.UserResponse, error) {
-	ctx := context.Background()
-	conn, err := repo.db.Acquire(ctx)
-	defer conn.Release()
-	if err != nil {
-		log.Warnf("Error acquiring connection: %v", err.Error())
-		return nil, err
-	}
-	row := conn.QueryRow(
-		ctx, "INSERT INTO users(full_name, phone) VALUES($1, $2) RETURNING *", &user.FullName, &user.Phone,
-	)
+func (repo *UserRepository) CreateUser(ctx *context.Context, conn *pgxpool.Conn, user *schemes.UserRequest) (*schemes.UserResponse, error) {
 	userResp := schemes.UserResponse{}
-	err = row.Scan(&userResp.UUID, &userResp.FullName, &userResp.Phone, &userResp.CreatedAt, &userResp.UpdatedAt)
-	if err != nil {
+	query := "INSERT INTO users(full_name, phone) VALUES($1, $2) RETURNING *"
+	if err := conn.QueryRow(*ctx, query, &user.FullName, &user.Phone).Scan(
+		&userResp.UUID, &userResp.FullName, &userResp.Phone, &userResp.CreatedAt, &userResp.UpdatedAt,
+	); err != nil {
 		log.Warnf("Failed to insert user: %s", err.Error())
 		return nil, err
 	}
 	return &userResp, nil
 }
 
-func (repo *UserRepository) GetUserByUUID(userUUID *uuid.UUID) (*schemes.UserResponse, error) {
-	ctx := context.Background()
-	conn, err := repo.db.Acquire(ctx)
-	defer conn.Release()
-	if err != nil {
-		log.Warnf("Error acquiring connection: %v", err.Error())
-		return nil, err
-	}
-	row := conn.QueryRow(ctx, "SELECT * FROM users WHERE uuid = $1", &userUUID)
+func (repo *UserRepository) GetUserByUUID(ctx *context.Context, conn *pgxpool.Conn, userUUID *uuid.UUID) (*schemes.UserResponse, error) {
 	userResp := schemes.UserResponse{}
-	err = row.Scan(&userResp.UUID, &userResp.FullName, &userResp.Phone, &userResp.CreatedAt, &userResp.UpdatedAt)
-	if err != nil {
+	query := "SELECT * FROM users WHERE uuid = $1"
+	if err := conn.QueryRow(*ctx, query, &userUUID).Scan(
+		&userResp.UUID, &userResp.FullName, &userResp.Phone, &userResp.CreatedAt, &userResp.UpdatedAt,
+	); err != nil {
 		log.Warnf("Failed to get user: %s", err.Error())
 		return nil, err
 	}
 	return &userResp, nil
 }
 
-func (repo *UserRepository) CheckUserByUUID(userUUID *uuid.UUID) (*bool, error) {
-	ctx := context.Background()
-	conn, err := repo.db.Acquire(ctx)
-	defer conn.Release()
-	if err != nil {
-		log.Warnf("Error acquiring connection: %v", err.Error())
-		return nil, err
-	}
-	row := conn.QueryRow(ctx, "SELECT CASE WHEN EXISTS (SELECT uuid FROM users WHERE uuid = $1) THEN true ELSE false END", &userUUID)
+func (repo *UserRepository) CheckUserByUUID(ctx *context.Context, conn *pgxpool.Conn, userUUID *uuid.UUID) (*bool, error) {
 	var result bool
-	err = row.Scan(&result)
-	if err != nil {
+	query := "SELECT CASE WHEN EXISTS (SELECT uuid FROM users WHERE uuid = $1) THEN true ELSE false END"
+	if err := conn.QueryRow(*ctx, query, &userUUID).Scan(&result); err != nil {
 		log.Warnf("Failed to get user: %s", err.Error())
 		return nil, err
 	}
 	return &result, nil
 }
 
-func (repo *UserRepository) CheckUserByPhone(phone *string) (*bool, error) {
-	ctx := context.Background()
-	conn, err := repo.db.Acquire(ctx)
-	defer conn.Release()
-	if err != nil {
-		log.Warnf("Error acquiring connection: %v", err.Error())
-		return nil, err
-	}
-	row := conn.QueryRow(
-		ctx, "SELECT CASE WHEN EXISTS (SELECT uuid FROM users WHERE phone = $1) THEN true ELSE false END", &phone,
-	)
+func (repo *UserRepository) CheckUserByPhone(ctx *context.Context, conn *pgxpool.Conn, phone *string) (*bool, error) {
 	var result bool
-	err = row.Scan(&result)
-	if err != nil {
+	query := "SELECT CASE WHEN EXISTS (SELECT uuid FROM users WHERE phone = $1) THEN true ELSE false END"
+	if err := conn.QueryRow(*ctx, query, &phone).Scan(&result); err != nil {
 		log.Warnf("Failed to check user: %s", err.Error())
 		return nil, err
 	}
 	return &result, nil
 }
 
-func (repo *UserRepository) UpdateUserByUUID(userUUID *uuid.UUID, user *schemes.UserRequest) (*schemes.UserResponse, error) {
-	ctx := context.Background()
-	conn, err := repo.db.Acquire(ctx)
-	defer conn.Release()
-	if err != nil {
-		log.Warnf("Error acquiring connection: %v", err.Error())
-		return nil, err
-	}
+func (repo *UserRepository) UpdateUserByUUID(ctx *context.Context, conn *pgxpool.Conn, userUUID *uuid.UUID, user *schemes.UserRequest) (*schemes.UserResponse, error) {
 	userResp := schemes.UserResponse{}
-	row := conn.QueryRow(
-		ctx,
-		"UPDATE users SET full_name = $1, phone = $2, updated_at = $3 WHERE uuid = $4 RETURNING *",
-		user.FullName,
-		user.Phone,
-		time.Now(),
-		userUUID,
-	)
-	err = row.Scan(&userResp.UUID, &userResp.FullName, &userResp.Phone, &userResp.CreatedAt, &userResp.UpdatedAt)
-	if err != nil {
+	query := "UPDATE users SET full_name = $1, phone = $2, updated_at = $3 WHERE uuid = $4 RETURNING *"
+	if err := conn.QueryRow(*ctx, query, user.FullName, user.Phone, time.Now(), userUUID).Scan(
+		&userResp.UUID, &userResp.FullName, &userResp.Phone, &userResp.CreatedAt, &userResp.UpdatedAt,
+	); err != nil {
 		log.Warnf("Failed to update user: %s", err.Error())
 		return nil, err
 	}
 	return &userResp, nil
 }
 
-func (repo *UserRepository) DeleteUserByUUID(userUUID *uuid.UUID) error {
-	ctx := context.Background()
-	conn, err := repo.db.Acquire(ctx)
-	defer conn.Release()
-	if err != nil {
-		log.Warnf("Error acquiring connection: %v", err.Error())
-		return err
-	}
-	result, err := conn.Exec(ctx, "DELETE FROM users WHERE uuid = $1 RETURNING TRUE", &userUUID)
+func (repo *UserRepository) DeleteUserByUUID(ctx *context.Context, conn *pgxpool.Conn, userUUID *uuid.UUID) error {
+	result, err := conn.Exec(*ctx, "DELETE FROM users WHERE uuid = $1 RETURNING TRUE", &userUUID)
 	if err != nil {
 		log.Warnf("Failed to get user: %s", err.Error())
 		return err

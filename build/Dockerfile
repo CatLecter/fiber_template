@@ -9,7 +9,6 @@ COPY ../app app
 COPY ../cmd cmd
 COPY ../configs configs
 COPY ../internal internal
-COPY ../utils utils
 COPY ../vendor vendor
 COPY ../go.sum go.sum
 COPY ../go.mod go.mod
