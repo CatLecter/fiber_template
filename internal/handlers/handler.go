@@ -10,12 +10,18 @@ import (
 )
 
 // Handler содержит HTTP-обработчики приложения.
-type Handler struct{ service *services.Service }
+type Handler struct {
+	service *services.Service
+	UserHandlerInterface
+}
 
 // NewHandler создает новый экземпляр HTTP-обработчика.
 func NewHandler(cfg *config.Config, db *pgxpool.Pool) *Handler {
 	service := services.NewService(cfg, db)
-	return &Handler{service: service}
+	return &Handler{
+		service:              service,
+		UserHandlerInterface: &UserHandler{service: service},
+	}
 }
 
 // Routes настраивает и возвращает маршруты приложения.
