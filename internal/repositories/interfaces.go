@@ -12,9 +12,9 @@ import (
 // UserRepositoryInterface определяет интерфейс для работы с пользователями.
 type UserRepositoryInterface interface {
 	CreateUser(ctx *context.Context, conn *pgxpool.Conn, user *schemes.UserRequest) (*schemes.UserResponse, error)
-	GetUserByUUID(ctx *context.Context, conn *pgxpool.Conn, userUUID *uuid.UUID) (*schemes.UserResponse, error)
-	UpdateUserByUUID(ctx *context.Context, conn *pgxpool.Conn, userUUID *uuid.UUID, user *schemes.UserRequest) (*schemes.UserResponse, error)
-	DeleteUserByUUID(ctx *context.Context, conn *pgxpool.Conn, userUUID *uuid.UUID) error
-	CheckUserByUUID(ctx *context.Context, conn *pgxpool.Conn, userUUID *uuid.UUID) (*bool, error)
+	GetUserByID(ctx *context.Context, conn *pgxpool.Conn, userID *uuid.UUID) (*schemes.UserResponse, error)
+	UpdateUserByID(ctx *context.Context, conn *pgxpool.Conn, userID *uuid.UUID, user *schemes.UserRequest) (*schemes.UserResponse, error)
+	DeleteUserByID(ctx *context.Context, conn *pgxpool.Conn, userID *uuid.UUID) error
+	CheckUserByID(ctx *context.Context, conn *pgxpool.Conn, userID *uuid.UUID) (*bool, error)
 	CheckUserByPhone(ctx *context.Context, conn *pgxpool.Conn, phone *string) (*bool, error)
 }

@@ -43,10 +43,10 @@ func (h *Handler) Routes() *fiber.App {
 	v1 := api.Group("/v1")
 
 	user := v1.Group("/user")
-	user.Get("/", h.GetUserByUUID)
+	user.Get("/", h.GetUserByID)
 	user.Post("/", h.CreateUser)
-	user.Put("/", h.UpdateUserByUUID)
-	user.Delete("/", h.DeleteUserByUUID)
+	user.Put("/", h.UpdateUserByID)
+	user.Delete("/", h.DeleteUserByID)
 
 	return app
 }

@@ -8,7 +8,7 @@ import (
 // UserHandlerInterface определяет интерфейс для работы с пользователями.
 type UserHandlerInterface interface {
 	CreateUser(ctx *fiber.Ctx) error
-	GetUserByUUID(ctx *fiber.Ctx) error
-	UpdateUserByUUID(ctx *fiber.Ctx) error
-	DeleteUserByUUID(ctx *fiber.Ctx) error
+	GetUserByID(ctx *fiber.Ctx) error
+	UpdateUserByID(ctx *fiber.Ctx) error
+	DeleteUserByID(ctx *fiber.Ctx) error
 }

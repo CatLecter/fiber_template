@@ -31,11 +31,11 @@ func (repo *UserRepository) CreateUser(ctx *context.Context, conn *pgxpool.Conn,
 	return &userResp, nil
 }
 
-// GetUserByUUID получает пользователя по UUID из базы данных.
-func (repo *UserRepository) GetUserByUUID(ctx *context.Context, conn *pgxpool.Conn, userUUID *uuid.UUID) (*schemes.UserResponse, error) {
+// GetUserByID получает пользователя по ID из базы данных.
+func (repo *UserRepository) GetUserByID(ctx *context.Context, conn *pgxpool.Conn, userID *uuid.UUID) (*schemes.UserResponse, error) {
 	userResp := schemes.UserResponse{}
 	query := "SELECT * FROM users WHERE uuid = $1"
-	if err := conn.QueryRow(*ctx, query, &userUUID).Scan(
+	if err := conn.QueryRow(*ctx, query, &userID).Scan(
 		&userResp.UUID, &userResp.FullName, &userResp.Phone, &userResp.CreatedAt, &userResp.UpdatedAt,
 	); err != nil {
 		log.Warnf("Failed to get user: %s", err.Error())
@@ -44,11 +44,11 @@ func (repo *UserRepository) GetUserByUUID(ctx *context.Context, conn *pgxpool.Co
 	return &userResp, nil
 }
 
-// CheckUserByUUID проверяет существование пользователя по UUID.
-func (repo *UserRepository) CheckUserByUUID(ctx *context.Context, conn *pgxpool.Conn, userUUID *uuid.UUID) (*bool, error) {
+// CheckUserByID проверяет существование пользователя по ID.
+func (repo *UserRepository) CheckUserByID(ctx *context.Context, conn *pgxpool.Conn, userID *uuid.UUID) (*bool, error) {
 	var result bool
 	query := "SELECT CASE WHEN EXISTS (SELECT uuid FROM users WHERE uuid = $1) THEN true ELSE false END"
-	if err := conn.QueryRow(*ctx, query, &userUUID).Scan(&result); err != nil {
+	if err := conn.QueryRow(*ctx, query, &userID).Scan(&result); err != nil {
 		log.Warnf("Failed to get user: %s", err.Error())
 		return nil, err
 	}
@@ -66,11 +66,11 @@ func (repo *UserRepository) CheckUserByPhone(ctx *context.Context, conn *pgxpool
 	return &result, nil
 }
 
-// UpdateUserByUUID обновляет данные пользователя по UUID.
-func (repo *UserRepository) UpdateUserByUUID(ctx *context.Context, conn *pgxpool.Conn, userUUID *uuid.UUID, user *schemes.UserRequest) (*schemes.UserResponse, error) {
+// UpdateUserByID обновляет данные пользователя по ID.
+func (repo *UserRepository) UpdateUserByID(ctx *context.Context, conn *pgxpool.Conn, userID *uuid.UUID, user *schemes.UserRequest) (*schemes.UserResponse, error) {
 	userResp := schemes.UserResponse{}
 	query := "UPDATE users SET full_name = $1, phone = $2, updated_at = $3 WHERE uuid = $4 RETURNING *"
-	if err := conn.QueryRow(*ctx, query, user.FullName, user.Phone, time.Now(), userUUID).Scan(
+	if err := conn.QueryRow(*ctx, query, user.FullName, user.Phone, time.Now(), userID).Scan(
 		&userResp.UUID, &userResp.FullName, &userResp.Phone, &userResp.CreatedAt, &userResp.UpdatedAt,
 	); err != nil {
 		log.Warnf("Failed to update user: %s", err.Error())
@@ -79,16 +79,16 @@ func (repo *UserRepository) UpdateUserByUUID(ctx *context.Context, conn *pgxpool
 	return &userResp, nil
 }
 
-// DeleteUserByUUID удаляет пользователя по UUID из базы данных.
-func (repo *UserRepository) DeleteUserByUUID(ctx *context.Context, conn *pgxpool.Conn, userUUID *uuid.UUID) error {
-	result, err := conn.Exec(*ctx, "DELETE FROM users WHERE uuid = $1 RETURNING TRUE", &userUUID)
+// DeleteUserByID удаляет пользователя по ID из базы данных.
+func (repo *UserRepository) DeleteUserByID(ctx *context.Context, conn *pgxpool.Conn, userID *uuid.UUID) error {
+	result, err := conn.Exec(*ctx, "DELETE FROM users WHERE uuid = $1 RETURNING TRUE", &userID)
 	if err != nil {
-		log.Warnf("Failed to get user: %s", err.Error())
+		log.Warnf("Failed to delete user: %s", err.Error())
 		return err
 	}
-	if result.String() == "DELETE 0" {
-		log.Warnf("User with UUID=%v does not exist", userUUID)
-		return errors.New("user does not exist")
+	if result.RowsAffected() == 0 {
+		log.Warnf("User with ID=%v does not exist", userID)
+		return errors.New("user not found")
 	}
 	return nil
 }

@@ -2,13 +2,16 @@
 package services
 
 import (
-	fiber "github.com/gofiber/fiber/v2"
+	"context"
+
+	"fibertemplate/internal/schemes"
+	"github.com/google/uuid"
 )
 
 // UserServiceInterface определяет интерфейс для работы с пользователями.
 type UserServiceInterface interface {
-	CreateUser(ctx *fiber.Ctx) error
-	GetUserByUUID(ctx *fiber.Ctx) error
-	UpdateUserByUUID(ctx *fiber.Ctx) error
-	DeleteUserByUUID(ctx *fiber.Ctx) error
+	CreateUser(ctx context.Context, req *schemes.UserRequest) (*schemes.UserResponse, error)
+	GetUserByID(ctx context.Context, id uuid.UUID) (*schemes.UserResponse, error)
+	UpdateUserByID(ctx context.Context, id uuid.UUID, req *schemes.UserRequest) (*schemes.UserResponse, error)
+	DeleteUserByID(ctx context.Context, id uuid.UUID) error
 }

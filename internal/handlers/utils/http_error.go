@@ -1,5 +1,5 @@
-// Package serviceutilities содержит утилиты для обработки HTTP-ошибок.
-package serviceutilities
+// Package handlerutilities содержит утилиты для обработки HTTP-ошибок в хендлерах.
+package handlerutilities
 
 import "fibertemplate/internal/schemes"
 
