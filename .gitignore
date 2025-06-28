@@ -20,11 +20,34 @@
 # Go workspace file
 go.work
 
-# MacOS
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# IDE
-.idea
+# Build output
+bin/
+dist/
 
-# Project
+# Environment files
 .env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/

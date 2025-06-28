@@ -1,28 +1,33 @@
+// Package services реализует бизнес-логику, связанную с пользователями.
 package services
 
 import (
 	"context"
 	"fmt"
-	"github.com/CatLecter/gin_template/configs"
-	"github.com/CatLecter/gin_template/internal/repositories"
-	"github.com/CatLecter/gin_template/internal/schemes"
-	"github.com/CatLecter/gin_template/internal/utils"
-	"github.com/gofiber/fiber/v2"
+
+	cfg "fibertemplate/internal/config"
+	"fibertemplate/internal/repositories"
+	"fibertemplate/internal/schemes"
+	utils "fibertemplate/internal/services/utils"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	log "github.com/sirupsen/logrus"
 )
 
+// UserService реализует бизнес-логику для работы с пользователями.
 type UserService struct {
-	cfg  *configs.Config
+	cfg  *cfg.Config
 	db   *pgxpool.Pool
 	repo repositories.UserRepositoryInterface
 }
 
-func NewUserService(cfg *configs.Config, db *pgxpool.Pool, repo repositories.UserRepositoryInterface) UserServiceInterface {
+// NewUserService создает новый экземпляр сервиса пользователей.
+func NewUserService(cfg *cfg.Config, db *pgxpool.Pool, repo repositories.UserRepositoryInterface) UserServiceInterface {
 	return &UserService{cfg, db, repo}
 }
 
+// GetUserByUUID получает пользователя по UUID.
 func (srv *UserService) GetUserByUUID(ctx *fiber.Ctx) error {
 	var err error
 	var userUUID uuid.UUID
@@ -40,15 +45,16 @@ func (srv *UserService) GetUserByUUID(ctx *fiber.Ctx) error {
 			utils.NewHTTPError("a new database connection could not be established"),
 		)
 	}
-	if userResp, err := srv.repo.GetUserByUUID(&timeoutCtx, conn, &userUUID); err != nil {
+	userResp, err := srv.repo.GetUserByUUID(&timeoutCtx, conn, &userUUID)
+	if err != nil {
 		return ctx.Status(fiber.StatusNotFound).JSON(
 			utils.NewHTTPError(fmt.Sprintf("user with UUID=%v not found", userUUID)),
 		)
-	} else {
-		return ctx.Status(fiber.StatusOK).JSON(userResp)
 	}
+	return ctx.Status(fiber.StatusOK).JSON(userResp)
 }
 
+// CreateUser создает нового пользователя.
 func (srv *UserService) CreateUser(ctx *fiber.Ctx) error {
 	newUser := new(schemes.UserRequest)
 	if err := ctx.BodyParser(&newUser); err != nil {
@@ -65,23 +71,26 @@ func (srv *UserService) CreateUser(ctx *fiber.Ctx) error {
 			utils.NewHTTPError("a new database connection could not be established"),
 		)
 	}
-	if isExists, err := srv.repo.CheckUserByPhone(&timeoutCtx, conn, &newUser.Phone); err != nil {
+	isExists, err := srv.repo.CheckUserByPhone(&timeoutCtx, conn, &newUser.Phone)
+	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(
 			utils.NewHTTPError("error checking the user's existence"),
 		)
-	} else if *isExists {
+	}
+	if *isExists {
 		return ctx.Status(fiber.StatusUnprocessableEntity).JSON(
 			utils.NewHTTPError(fmt.Sprintf("user with phone number %v already exists", newUser.Phone)),
 		)
 	}
-	if userResp, err := srv.repo.CreateUser(&timeoutCtx, conn, newUser); err != nil {
+	userResp, err := srv.repo.CreateUser(&timeoutCtx, conn, newUser)
+	if err != nil {
 		log.Warnf("Error when creating a user: %v", err.Error())
 		return ctx.Status(fiber.StatusBadRequest).JSON(utils.NewHTTPError("user cannot be created"))
-	} else {
-		return ctx.Status(fiber.StatusOK).JSON(userResp)
 	}
+	return ctx.Status(fiber.StatusOK).JSON(userResp)
 }
 
+// UpdateUserByUUID обновляет пользователя по UUID.
 func (srv *UserService) UpdateUserByUUID(ctx *fiber.Ctx) error {
 	var err error
 	var userUUID uuid.UUID
@@ -102,9 +111,11 @@ func (srv *UserService) UpdateUserByUUID(ctx *fiber.Ctx) error {
 		)
 	}
 
-	if isExistsUser, err := srv.repo.CheckUserByUUID(&timeoutCtx, conn, &userUUID); err != nil {
+	isExistsUser, err := srv.repo.CheckUserByUUID(&timeoutCtx, conn, &userUUID)
+	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(utils.NewHTTPError("error checking the user's existence"))
-	} else if !*isExistsUser {
+	}
+	if !*isExistsUser {
 		return ctx.Status(fiber.StatusUnprocessableEntity).JSON(
 			utils.NewHTTPError(fmt.Sprintf("user with uuid %v not found", userUUID)),
 		)
@@ -114,21 +125,24 @@ func (srv *UserService) UpdateUserByUUID(ctx *fiber.Ctx) error {
 		log.Warnf("Error parsing body: %v", err.Error())
 		return ctx.Status(fiber.StatusBadRequest).JSON(utils.NewHTTPError("cannot parse JSON"))
 	}
-	if isExistsPhone, err := srv.repo.CheckUserByPhone(&timeoutCtx, conn, &newUserData.Phone); err != nil {
+	isExistsPhone, err := srv.repo.CheckUserByPhone(&timeoutCtx, conn, &newUserData.Phone)
+	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(utils.NewHTTPError("error checking the user's existence"))
-	} else if *isExistsPhone {
+	}
+	if *isExistsPhone {
 		return ctx.Status(fiber.StatusUnprocessableEntity).JSON(
 			utils.NewHTTPError(fmt.Sprintf("user with phone number %v already exists", newUserData.Phone)),
 		)
 	}
-	if userResp, err := srv.repo.UpdateUserByUUID(&timeoutCtx, conn, &userUUID, newUserData); err != nil {
+	userResp, err := srv.repo.UpdateUserByUUID(&timeoutCtx, conn, &userUUID, newUserData)
+	if err != nil {
 		log.Warnf("Error when updating a user: %v", err.Error())
 		return ctx.Status(fiber.StatusBadRequest).JSON(utils.NewHTTPError("user cannot be updated"))
-	} else {
-		return ctx.Status(fiber.StatusOK).JSON(userResp)
 	}
+	return ctx.Status(fiber.StatusOK).JSON(userResp)
 }
 
+// DeleteUserByUUID удаляет пользователя по UUID.
 func (srv *UserService) DeleteUserByUUID(ctx *fiber.Ctx) error {
 	var err error
 	var userUUID uuid.UUID
@@ -149,9 +163,11 @@ func (srv *UserService) DeleteUserByUUID(ctx *fiber.Ctx) error {
 		)
 	}
 
-	if isExistsUser, err := srv.repo.CheckUserByUUID(&timeoutCtx, conn, &userUUID); err != nil {
+	isExistsUser, err := srv.repo.CheckUserByUUID(&timeoutCtx, conn, &userUUID)
+	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(utils.NewHTTPError("error checking the user's existence"))
-	} else if !*isExistsUser {
+	}
+	if !*isExistsUser {
 		return ctx.Status(fiber.StatusNotFound).JSON(
 			utils.NewHTTPError(fmt.Sprintf("user with uuid %v not found", userUUID)),
 		)

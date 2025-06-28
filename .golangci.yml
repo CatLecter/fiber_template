@@ -1,0 +1,115 @@
+version: "2"
+
+linters:
+  default: all
+  enable:
+    - govet
+    - staticcheck
+    - errcheck
+    - revive
+    - gocritic
+    - gosec
+    - gocyclo
+    - dupl
+    - goconst
+    - ineffassign
+    - unused
+  disable:
+    - funlen
+    - lll
+    - misspell
+    - testpackage
+    - gochecknoglobals
+    - gochecknoinits
+    - gocognit
+    - cyclop
+    - nlreturn
+    - nestif
+    - maintidx
+    - dogsled
+    - prealloc
+    - wsl
+    - whitespace
+    - wrapcheck
+    - varnamelen
+    - nolintlint
+    - nonamedreturns
+    - paralleltest
+    - thelper
+    - unparam
+    - unconvert
+    - loggercheck
+    - sloglint
+    - tagalign
+    - tagliatelle
+    - promlinter
+    - protogetter
+    - spancheck
+    - testifylint
+    - usestdlibvars
+    - containedctx
+    - inamedparam
+    - importas
+    - decorder
+    - asasalint
+    - forbidigo
+    - musttag
+    - predeclared
+    - makezero
+    - nilnil
+    - nakedret
+    - exhaustive
+    - exhaustruct
+    - rowserrcheck
+    - reassign
+    - perfsprint
+    - ginkgolinter
+    - gochecksumtype
+    - gomoddirectives
+    - gomodguard
+    - gosmopolitan
+    - depguard
+    - err113
+    - ireturn
+    - mnd
+
+formatters:
+  enable:
+    - gci
+
+linters-settings:
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(fibertemplate)
+
+run:
+  timeout: 5m
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - dupl
+        - goconst
+    - path: migrations/
+      linters:
+        - unused
+        - ineffassign
+        - errcheck
+    - path: docs/
+      linters:
+        - unused
+        - ineffassign
+        - errcheck
+    - path: scripts/
+      linters:
+        - unused
+        - ineffassign
+        - errcheck
+  exclude:
+    - "Error return value of .((os\\.)?std(out|err)\\..*|.*Close|.*Flush|os\\.Remove(All)?|.*printf?|os\\.(Un)?Setenv). is not checked"

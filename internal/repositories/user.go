@@ -1,19 +1,24 @@
+// Package repositories содержит репозитории для работы с данными пользователей.
 package repositories
 
 import (
 	"context"
 	"errors"
-	"github.com/CatLecter/gin_template/internal/schemes"
+	"time"
+
+	"fibertemplate/internal/schemes"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
+// UserRepository реализует интерфейс для работы с пользователями в базе данных.
 type UserRepository struct{}
 
+// NewUserRepository создает новый экземпляр репозитория пользователей.
 func NewUserRepository() UserRepositoryInterface { return &UserRepository{} }
 
+// CreateUser создает нового пользователя в базе данных.
 func (repo *UserRepository) CreateUser(ctx *context.Context, conn *pgxpool.Conn, user *schemes.UserRequest) (*schemes.UserResponse, error) {
 	userResp := schemes.UserResponse{}
 	query := "INSERT INTO users(full_name, phone) VALUES($1, $2) RETURNING *"
@@ -26,6 +31,7 @@ func (repo *UserRepository) CreateUser(ctx *context.Context, conn *pgxpool.Conn,
 	return &userResp, nil
 }
 
+// GetUserByUUID получает пользователя по UUID из базы данных.
 func (repo *UserRepository) GetUserByUUID(ctx *context.Context, conn *pgxpool.Conn, userUUID *uuid.UUID) (*schemes.UserResponse, error) {
 	userResp := schemes.UserResponse{}
 	query := "SELECT * FROM users WHERE uuid = $1"
@@ -38,6 +44,7 @@ func (repo *UserRepository) GetUserByUUID(ctx *context.Context, conn *pgxpool.Co
 	return &userResp, nil
 }
 
+// CheckUserByUUID проверяет существование пользователя по UUID.
 func (repo *UserRepository) CheckUserByUUID(ctx *context.Context, conn *pgxpool.Conn, userUUID *uuid.UUID) (*bool, error) {
 	var result bool
 	query := "SELECT CASE WHEN EXISTS (SELECT uuid FROM users WHERE uuid = $1) THEN true ELSE false END"
@@ -48,6 +55,7 @@ func (repo *UserRepository) CheckUserByUUID(ctx *context.Context, conn *pgxpool.
 	return &result, nil
 }
 
+// CheckUserByPhone проверяет существование пользователя по номеру телефона.
 func (repo *UserRepository) CheckUserByPhone(ctx *context.Context, conn *pgxpool.Conn, phone *string) (*bool, error) {
 	var result bool
 	query := "SELECT CASE WHEN EXISTS (SELECT uuid FROM users WHERE phone = $1) THEN true ELSE false END"
@@ -58,6 +66,7 @@ func (repo *UserRepository) CheckUserByPhone(ctx *context.Context, conn *pgxpool
 	return &result, nil
 }
 
+// UpdateUserByUUID обновляет данные пользователя по UUID.
 func (repo *UserRepository) UpdateUserByUUID(ctx *context.Context, conn *pgxpool.Conn, userUUID *uuid.UUID, user *schemes.UserRequest) (*schemes.UserResponse, error) {
 	userResp := schemes.UserResponse{}
 	query := "UPDATE users SET full_name = $1, phone = $2, updated_at = $3 WHERE uuid = $4 RETURNING *"
@@ -70,6 +79,7 @@ func (repo *UserRepository) UpdateUserByUUID(ctx *context.Context, conn *pgxpool
 	return &userResp, nil
 }
 
+// DeleteUserByUUID удаляет пользователя по UUID из базы данных.
 func (repo *UserRepository) DeleteUserByUUID(ctx *context.Context, conn *pgxpool.Conn, userUUID *uuid.UUID) error {
 	result, err := conn.Exec(*ctx, "DELETE FROM users WHERE uuid = $1 RETURNING TRUE", &userUUID)
 	if err != nil {

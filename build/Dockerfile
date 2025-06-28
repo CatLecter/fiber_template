@@ -1,11 +1,10 @@
-FROM golang:1.22-bookworm as builder
+FROM golang:1.24.4-alpine3.22 as builder
 
 RUN mkdir "/tmp/build"
 
 WORKDIR /tmp/build
 
-COPY ../api api
-COPY ../app app
+COPY ../docs docs
 COPY ../cmd cmd
 COPY ../configs configs
 COPY ../internal internal
@@ -17,11 +16,11 @@ RUN go mod tidy
 RUN go mod download
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -mod=vendor -o main cmd/main.go
 
-FROM debian:12-slim
+FROM alpine:3.22
 
 WORKDIR /usr/src/app
 
-COPY ../api api
+COPY ../docs docs
 
 COPY --from=builder /tmp/build .
 
